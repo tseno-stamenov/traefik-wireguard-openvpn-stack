@@ -1,0 +1,73 @@
+version: "3.9"
+
+services:
+  traefik:
+    image: traefik:v3.6.1
+    container_name: traefik
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+
+      # Entrypoints
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+
+      # Let's Encrypt (HTTP-01 challenge)
+      - "--certificatesresolvers.letsencrypt.acme.email=${LE_EMAIL}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+
+      # Docker socket inside container
+      - "--providers.docker.endpoint=unix:///var/run/docker.sock"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./letsencrypt:/letsencrypt"
+    networks:
+      - vpn-net
+
+  # Test service
+  whoami:
+    image: traefik/whoami
+    container_name: whoami
+    restart: unless-stopped
+    networks:
+      - vpn-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik-test.rule=Host(`${TRAEFIK_DOMAIN}`)"
+      - "traefik.http.routers.traefik-test.entrypoints=websecure"
+      - "traefik.http.routers.traefik-test.tls.certresolver=letsencrypt"
+
+  # WireGuard (wg-easy)
+  wg-ui:
+    image: weejewel/wg-easy
+    container_name: wg-ui
+    restart: unless-stopped
+    environment:
+      - WG_HOST=${WG_UI_DOMAIN}
+      - PASSWORD=${WG_UI_PASSWORD}
+    volumes:
+      - "./wg-data:/etc/wireguard"
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    sysctls:
+      - net.ipv4.ip_forward=1
+      - net.ipv6.conf.all.forwarding=1
+    networks:
+      - vpn-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.wg-ui.rule=Host(`${WG_UI_DOMAIN}`)"
+      - "traefik.http.routers.wg-ui.entrypoints=websecure"
+      - "traefik.http.routers.wg-ui.tls.certresolver=letsencrypt"
+      - "traefik.http.services.wg-ui.loadbalancer.server.port=51821"
+
+networks:
+  vpn-net:
+    driver: bridge
