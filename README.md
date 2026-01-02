@@ -123,7 +123,7 @@ Traefik handles TLS termination and routing
 
 Docker socket mounted read-only
 
-⚠️ Passwords and secrets are NOT stored in this repository ⚠️
+**Passwords and secrets are NOT stored in this repository **
 
 ### **Deployment
 
