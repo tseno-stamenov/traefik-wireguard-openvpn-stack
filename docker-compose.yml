@@ -68,6 +68,21 @@ services:
       - "traefik.http.routers.wg-ui.tls.certresolver=letsencrypt"
       - "traefik.http.services.wg-ui.loadbalancer.server.port=51821"
 
+  openvpn:
+    image: openvpn/openvpn-as
+    container_name: openvpn
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    volumes:
+      - ./openvpn-data:/openvpn
+    ports:
+      - "1194:1194/udp"   # OpenVPN tunnel
+      - "943:943/tcp"     # Admin & Client UI (TEMP)
+    networks:
+      - vpn-net
+
 networks:
   vpn-net:
     driver: bridge
