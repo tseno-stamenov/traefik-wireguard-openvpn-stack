@@ -86,12 +86,12 @@ based on the domain name in the request.
 Example domain used below:
 
 ```text
-**example.com**
+example.com
 ```
 
 ### **Step 2: Create DNS A records
 
-Create the following A records, all pointing to your VM’s public IPv4 address:
+Create the following A DNS records, all pointing to your VM’s public IPv4 address:
 
 traefik.example.com → <VM_PUBLIC_IP>
 wg-ui.example.com   → <VM_PUBLIC_IP>
@@ -132,18 +132,49 @@ Step 1: Clone the repository (on the VM)
 ```text
 git clone https://github.com/tseno-stamenov/traefik-wireguard-openvpn-stack
 cd traefik-wireguard-openvpn-stack
+```
 
-'''
-Step 2: Create required directories
-'''text
+Step 2: Configure environment variables
+
+Configure environment variables by copying 'env.example' to '.env' and change the variables in the '.env' file. 
+```text
+cp .env.example .env
+```
+**NEVER COMMIT OR SHARE the original .env file which you will create - it will have sensitive data.
+
+Edit the file and replace all placeholder values:
+
+```text
+nano .env
+```
+
+Important
+
+```text
+.env contains secrets and must NOT be committed
+.env.example is safe and public
+```
+
+Step 3 Create required directories
+
+```text
 mkdir -p letsencrypt wg-data openvpn-data
 '''
-Step 3: Start the stack
-'''text
+Create and secure the Let’s Encrypt storage file:
+
+```text
+touch letsencrypt/acme.json
+chmod 600 letsencrypt/acme.json
+```
+
+Step 4: Start the stack
+
+```text
 docker compose up -d
 ```
 
-Step 4: Verify access
+Step 5: Verify access
+
 ```text
 https://traefik.example.com
 https://wg-ui.example.com
@@ -155,6 +186,7 @@ https://vpn-ui.example.com:943
 .
 ├── docker-compose.yml        # Main stack definition
 ├── README.md                 # Documentation
+├── .env.example              # Environment variable template which will be used to create the .env file
 ├── letsencrypt/              # TLS certificates (mounted into Traefik)
 │   └── acme.json
 ├── wg-data/                  # WireGuard persistent data
