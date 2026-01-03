@@ -125,6 +125,18 @@ Docker socket mounted read-only
 
 **Passwords and secrets are NOT stored in this repository **
 
+## **Prerequisites**
+
+Before deployment, ensure Docker and Docker Compose are installed:
+
+```text
+sudo apt update
+sudo apt install -y docker.io docker-compose-plugin
+sudo systemctl enable docker
+sudo systemctl start docker
+sudo usermod -aG docker $USER
+```
+
 ### **Deployment
 
 Step 1: Clone the repository (on the VM)
@@ -159,7 +171,7 @@ Step 3 Create required directories
 
 ```text
 mkdir -p letsencrypt wg-data openvpn-data
-'''
+```
 Create and secure the Let’s Encrypt storage file:
 
 ```text
